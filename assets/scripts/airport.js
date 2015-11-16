@@ -975,6 +975,9 @@ function airport_set(icao) {
     $.isEmptyObject(prop.airport.current.departures.sids));
 
   prop.canvas.dirty = true;
+
+  $('.toggle-terrain').toggleClass('hidden', 
+    $.isEmptyObject(prop.airport.current.terrain));
 }
 
 function airport_get(icao) {
