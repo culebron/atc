@@ -37,8 +37,14 @@ function clone(obj) {
 
 var sin_cache={};
 
-function round(n) {
-  return Math.round(n);
+function ceil(n, factor) {
+  factor = factor || 1;
+  return Math.ceil(n / factor) * factor;
+}
+
+function round(n, factor) {
+  factor = factor || 1;
+  return Math.round(n / factor) * factor;
 }
 
 function abs(n) {
@@ -430,21 +436,41 @@ function distance_to_poly(point, poly) {
 }
 
 
+function point_to_mpoly(point, mpoly) {
+  /* returns: boolean inside/outside & distance to the polygon */
+  var k, ring, inside = false;
+  for (var k in mpoly) {
+    ring = mpoly[k];
+    if (point_in_poly(point, ring)) {
+      if (k == 0)  
+        inside = true; // if inside outer ring, remember that and wait till the end
+      else // if by change in one of inner rings, it's out of poly, return distance to the inner ring
+        return {inside: false, distance: distance_to_poly(point, ring)}
+    }
+  }
+  // if not matched to inner circles, return the match to outer and distance to it
+  return {inside: inside, distance: distance_to_poly(point, mpoly[0])};
+}
+
 // source: https://github.com/substack/point-in-polygon/
 function point_in_poly(point, vs) {
     // ray-casting algorithm based on
     // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
     
-    var x = point[0], y = point[1];
-    
-    var inside = false;
-    for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+    var x = point[0],
+        y = point[1],
+        i,
+        j = vs.length - 1,
+        inside = false;
+
+    for (i in vs) {
         var xi = vs[i][0], yi = vs[i][1];
         var xj = vs[j][0], yj = vs[j][1];
         
         var intersect = ((yi > y) != (yj > y))
             && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
         if (intersect) inside = !inside;
+        j = i;
     }
     
     return inside;

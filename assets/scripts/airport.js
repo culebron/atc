@@ -818,21 +818,46 @@ var Airport=Fiber.extend(function() {
       return this.runway;
     },
     parseTerrain: function(data) {
+      // terrain must be in geojson format
       var apt = this;
-      this.terrain = {};
-      for (var h in data) {
-        this.terrain[h] = {};
-        for (var id in data[h]) {
-          this.terrain[h][id] = $.map(data[h][id].coords, function(pt) {
-            return [(new Position(pt, apt.position, apt.magnetic_north)).position];
-          })
+      apt.terrain = {};
+      for (var i in data.features) {
+        var f = data.features[i],
+            ele = round(f.properties.elevation / .3048, 1000); // m => ft, rounded to 1K (but not divided)
+
+        if (!apt.terrain[ele]) {
+          apt.terrain[ele] = [];
         }
+
+        var multipoly = f.geometry.coordinates;
+        if (f.geometry.type == 'LineString') {
+          multipoly = [[multipoly]];
+        }
+        if (f.geometry.type == 'Polygon') {
+          multipoly = [multipoly];
+        }
+
+        $.each(multipoly, function(i, poly) {
+          // multipoly contains several polys
+          // each poly has 1st outer ring and other rings are holes
+          apt.terrain[ele].push($.map(poly, function(line_string) { 
+            return [
+              $.map(line_string,
+                function(pt) {
+                  var pos = new Position(pt, apt.position, apt.magnetic_north);
+                  pos.parse4326();
+                  return [pos.position];
+                }
+              )
+            ];
+          }));
+        });
       }
     },
     loadTerrain: function() {
       var terrain = new Content({
         type: "json",
-        url:  'assets/airports/terrain/' + this.icao.toLowerCase() + '.json',
+        url:  'assets/airports/terrain/' + this.icao.toLowerCase() + '.geojson',
         that: this,
         callback: function(status, data) {
           if(status == "ok") {
@@ -964,20 +989,22 @@ function airport_set(icao) {
   prop.airport.current = prop.airport.airports[icao];
   prop.airport.current.set();
 
+  var airport = prop.airport.current;
+
   $('#airport')
     .text(prop.airport.current.icao.toUpperCase())
-    .attr("title", prop.airport.current.name);
+    .attr("title", airport.name);
 
-  $('.toggle-restricted-areas').toggleClass('hidden', 
-    (prop.airport.current.restricted_areas || []).length < 1);
+  $('.toggle-restricted-areas').toggle(
+    (prop.airport.current.restricted_areas || []).length);
 
-  $('.toggle-sids').toggleClass('hidden', 
-    $.isEmptyObject(prop.airport.current.departures.sids));
+  $('.toggle-sids').toggle(
+    !$.isEmptyObject(prop.airport.current.departures.sids));
 
   prop.canvas.dirty = true;
 
-  $('.toggle-terrain').toggleClass('hidden', 
-    $.isEmptyObject(prop.airport.current.terrain));
+  $('.toggle-terrain').toggle(
+    !$.isEmptyObject(prop.airport.current.terrain));
 }
 
 function airport_get(icao) {

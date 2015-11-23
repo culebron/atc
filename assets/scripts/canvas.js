@@ -244,23 +244,36 @@ function canvas_draw_fix(cc, name, fix) {
   cc.lineTo(-4,  3);
   cc.closePath();
   cc.fill();
+  cc.stroke();
 
   cc.textAlign    = "center";
   cc.textBaseline = "top";
+  cc.strokeText(name, 0, 6);
   cc.fillText(name, 0, 6);
 }
 
 function canvas_draw_fixes(cc) {
   "use strict";
-  cc.strokeStyle = "rgba(255, 255, 255, 0.4)";
-  cc.fillStyle   = "rgba(255, 255, 255, 0.4)";
-  cc.lineWidth   = 2;
   cc.lineJoin    = "round";
   cc.font = "10px monoOne, monospace";
   var airport=airport_get();
   for(var i in airport.fixes) {
     cc.save();
     cc.translate(round(km(airport.fixes[i][0])) + prop.canvas.panX, -round(km(airport.fixes[i][1])) + prop.canvas.panY);
+
+    // draw outline (draw with eraser)
+    cc.strokeStyle = "rgba(0, 0, 0, 0.67)";
+    cc.fillStyle   = "rgba(0, 0, 0, 0.67)";
+    cc.globalCompositeOperation = 'destination-out';
+    cc.lineWidth   = 5;
+    
+    canvas_draw_fix(cc, i, airport.fixes[i]);
+
+    cc.strokeStyle = "rgba(255, 255, 255, 0)";
+    cc.fillStyle   = "rgba(255, 255, 255, 0.4)";
+    cc.globalCompositeOperation = 'source-over';
+    cc.lineWidth   = 2;
+
     canvas_draw_fix(cc, i, airport.fixes[i]);
     cc.restore();
   }
@@ -914,16 +927,28 @@ function canvas_draw_terrain(cc) {
   var airport = airport_get();
   cc.save();
   cc.translate(prop.canvas.panX, prop.canvas.panY);
-  for (var l in airport.terrain) {
+  $.each(airport.terrain, function(ele, terrain_level) {
     var color = 'rgba('
-      + prop.ui.terrain.colors[l] + ', ';
+      + prop.ui.terrain.colors[ele] + ', ';
 
     cc.strokeStyle = color + prop.ui.terrain.border_opacity + ')';
     cc.fillStyle = color + prop.ui.terrain.fill_opacity + ')';
 
-    for (var id in airport.terrain[l])
-      canvas_draw_poly(cc, airport.terrain[l][id]);
-  }
+    $.each(terrain_level, function(k, v) {
+      cc.beginPath();
+      $.each(v, function(j, v2) {
+        for (var v in v2) {
+          if (v == 0)
+            cc.moveTo(km(v2[v][0]), -km(v2[v][1]));
+          else 
+            cc.lineTo(km(v2[v][0]), -km(v2[v][1]));
+        }
+        cc.closePath();
+      });
+      cc.stroke();
+      cc.fill();
+    });
+  });
 
   cc.restore();
 }
@@ -1048,19 +1073,4 @@ function canvas_update_post() {
 
     prop.canvas.dirty = false;
   }
-}
-
-function canvas_restricted_toggle(evt) {
-  $(evt.target).closest('.control').toggleClass('warning-button active');
-  prop.canvas.draw_restricted = !prop.canvas.draw_restricted;
-}
-
-function canvas_sids_toggle(evt) {
-  $(evt.target).closest('.control').toggleClass('active');
-  prop.canvas.draw_sids = !prop.canvas.draw_sids;
-}
-
-function canvas_terrain_toggle(evt) {
-  $(evt.target).closest('.control').toggleClass('active');
-  prop.canvas.draw_terrain = !prop.canvas.draw_terrain;
 }
