@@ -5,6 +5,7 @@
   "icao": "SBGL",
   "iata": "GIG",
   "ctr_radius": 115,
+  "magnetic_north": -21.36, 
   "position": ["S22.813391", "W43.249464"],
   "has_terrain": true,
   "wind": {
@@ -115,14 +116,14 @@
       ["FAB", 1]
     ],
     "destinations": [
-      40, 70, 205, 240, 350
+      65, 90, 225, 260, 10
     ],
     "frequency": [1, 4.5]
   },
   
   "arrivals":[
     {
-      "radial": 60,
+      "radial": 90,
       "speed": 250,
       "fixes": ["ZANA", "AROB", "PCX", "FICO"],
       "airlines": [
@@ -146,7 +147,7 @@
       "altitude": [8000, 10000]
     },
     {
-      "radial": 310,
+      "radial": 340,
       "speed": 250,
       "fixes": ["LUNAT", "PAI", "GATI"],
       "airlines": [
@@ -159,7 +160,7 @@
       "altitude": [8000, 10000]
     },
     {
-      "radial": 210,
+      "radial": 240,
       "speed": 250,
       "fixes": ["BOTE", "BUPI", "SCR"],
       "airlines":[
@@ -180,7 +181,7 @@
       "altitude": [9000, 10000]
     },
     {
-      "radial": 260,
+      "radial": 280,
       "speed": 250,
       "fixes": ["TUBO", "COTA", "GATI"],
       "airlines": [
@@ -193,7 +194,7 @@
       "altitude": [7000, 9000]
     },
     {
-      "radial": 270,
+      "radial": 280,
       "fixes": ["TUBO", "COTA", "GATI"],
       "speed": 120,
       "airlines": [
