@@ -1386,22 +1386,22 @@ var Aircraft=Fiber.extend(function() {
         if (this.isPrecisionGuided() && other.isPrecisionGuided()) {
           if(this.requested.runway != other.requested.runway) {
             // Notice at 3500 feet horizontal and 1500 feet vertical
-            if ((distance < 1.067) && (altitude < 1500)) notice = true;
+            notice = ((distance < 1.067) && (altitude < 1500));
             // Warning at 3000 feet and 1000 feet vertical
-            if ((distance < 0.914) && (altitude < 1000)) warning = true;
+            warning = ((distance < 0.914) && (altitude < 1000));
           } else  {
             // Notice at 2.8nm horizontal and 1500 feet vertical
-            if ((distance < 5.2) && (altitude < 1500)) notice = true;
+            notice = ((distance < 5.2) && (altitude < 1500));
             // Warning within 2.5nm horizontal and 1000 feet vertical
-            if ((distance < 4.6) && (altitude < 1000)) warning = true;
+            warning = ((distance < 4.6) && (altitude < 1000));
           }
         }
         // Standard separation
         else {
           // Notice at 4nm horizontal and 1500 feet vertical
-          if ((distance < 7.4) && (altitude < 1500)) notice = true;
+          notice = ((distance < 7.4) && (altitude < 1500));
           // Warning within 3nm horizontal and 1000 feet vertical
-          if ((distance < 5.6) && (altitude < 1000)) warning = true;
+          warning = ((distance < 5.6) && (altitude < 1000));
         }
 
         // Collide within 160 feet
@@ -1499,7 +1499,6 @@ var Aircraft=Fiber.extend(function() {
               if (!this.hit) {
                 console.log("hit terrain");
                 ui_log(true, this.getCallsign() + " collided with terrain in controlled flight");
-                prop.game.score.hit += 1;
               }
             } else {
               curr_ranges[id] = Math.max(.2, status.distance);
@@ -1509,6 +1508,9 @@ var Aircraft=Fiber.extend(function() {
         }
       }
 
+      // update scores, but only the moment warning/hit is turned on
+      if (warning && !this.warning) prop.game.score.warning += .5;
+      if (hit && !this.hit)         prop.game.score.hit += 1;    
       this.notice  = notice;
       this.warning = warning;
       this.hit     = hit;
